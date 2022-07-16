@@ -432,8 +432,8 @@ jobs:
               else
                 exit 1
               fi
-      - destroy-environment
-      - revert-migrations
+      # - destroy-environment
+      # - revert-migrations
 
 
  
@@ -462,7 +462,7 @@ jobs:
       - revert-migrations
  
 
-cleanup:
+  cleanup:
     docker:
       - image: cimg/base:stable
     steps:
@@ -477,7 +477,7 @@ cleanup:
             echo Stack names: "${STACKS[@]}"
             export OldWorkflowID=$(curl --insecure https://kvdb.io/33GxcCpH7rHocPuWALvF32/old_workflow_id)
             echo Old Workflow ID: $OldWorkflowID
-            - run:
+      - run:
           name: Remove old stacks and files
           command: |
             export OldWorkflowID=$(curl --insecure https://kvdb.io/33GxcCpH7rHocPuWALvF32/old_workflow_id)
