@@ -1,0 +1,3 @@
+1. https://github.com/omonoboigbator/cdond-c3-projectstarter
+
+2. http://udapeople-25f40ad.s3-website-us-east-1.amazonaws.com/#/employees
