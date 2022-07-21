@@ -66,7 +66,7 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS=$(curl --insecure "https://kvdb.io/GihzLn9tKaS8UmwtTTnRhb/migration_<<parameters.workflow_id>>")
+            SUCCESS=$(curl --insecure "https://kvdb.io/5rTNVEHdZwSn32ApX5E6D5/migration_<<parameters.workflow_id>>")
             if(( $SUCCESS==1 )); 
             then
               cd ~/project/backend
@@ -275,7 +275,7 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints:
-            - "a4:9d:96:eb:ac:e1:aa:05:fb:97:f2:1d:e8:2c:0e:9c"
+            - "87:fc:95:08:78:90:e9:9b:95:de:4f:db:38:cd:77:83"
       - attach_workspace:
           at: ~/
     
@@ -307,7 +307,7 @@ jobs:
           command: |
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
-             curl --insecure https://kvdb.io/33GxcCpH7rHocPuWALvF32/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+             curl --insecure https://kvdb.io/5rTNVEHdZwSn32ApX5E6D5/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
       - destroy-environment 
       - revert-migrations
@@ -320,7 +320,7 @@ jobs:
 
       - add_ssh_keys:
           fingerprints: 
-            - "a4:9d:96:eb:ac:e1:aa:05:fb:97:f2:1d:e8:2c:0e:9c"
+            - "87:fc:95:08:78:90:e9:9b:95:de:4f:db:38:cd:77:83"
       - attach_workspace:
           at: ~/
 
@@ -363,7 +363,7 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints: 
-            - "a4:9d:96:eb:ac:e1:aa:05:fb:97:f2:1d:e8:2c:0e:9c"
+            - "87:fc:95:08:78:90:e9:9b:95:de:4f:db:38:cd:77:83"
       - attach_workspace:
           at: ~/
       - install_nodejs
@@ -447,7 +447,7 @@ jobs:
             list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
             --no-paginate --output text)
             echo "Old Wokflow ID: $OLD_WORKFLOW_ID"
-            curl https://kvdb.io/33GxcCpH7rHocPuWALvF32/old_workflow_id -d "${OLD_WORKFLOW_ID}"
+            curl https://kvdb.io/5rTNVEHdZwSn32ApX5E6D5/old_workflow_id -d "${OLD_WORKFLOW_ID}"
       - run:
           name: Update cloudfront distribution
           command: |
@@ -472,12 +472,12 @@ jobs:
                 --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
             echo Stack names: "${STACKS[@]}"
-            export OldWorkflowID=$(curl --insecure https://kvdb.io/33GxcCpH7rHocPuWALvF32/old_workflow_id)
+            export OldWorkflowID=$(curl --insecure https://kvdb.io/5rTNVEHdZwSn32ApX5E6D5/old_workflow_id)
             echo Old Workflow ID: $OldWorkflowID
       - run:
           name: Remove old stacks and files
           command: |
-            export OldWorkflowID=$(curl --insecure https://kvdb.io/33GxcCpH7rHocPuWALvF32/old_workflow_id)
+            export OldWorkflowID=$(curl --insecure https://kvdb.io/5rTNVEHdZwSn32ApX5E6D5/old_workflow_id)
             echo Old Workflow ID: $OldWorkflowID 
 
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
