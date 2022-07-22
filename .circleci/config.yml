@@ -354,60 +354,45 @@ jobs:
 
      
                     
-  deploy-backend:
+  deploy-frontend:
     docker:
-      - image: python:3.7-alpine3.11
-        environment:
-          NODE_ENV: "local"
-          VERSION: "1"
-          ENVIRONMENT: "production"
-          TYPEORM_CONNECTION: $TYPEORM_CONNECTION
-          TYPEORM_HOST: $TYPEORM_HOST
-          TYPEORM_USERNAME: $TYPEORM_USERNAME
-          TYPEORM_PASSWORD: $TYPEORM_PASSWORD
-          TYPEORM_DATABASE: $TYPEORM_DATABASE
-          TYPEORM_PORT: $TYPEORM_PORT
-          TYPEORM_ENTITIES: $TYPEORM_ENTITIES
+      - image: cimg/base:stable
     steps:
       - checkout
+
       - add_ssh_keys:
-          fingerprints: ["eb:8c:c3:a9:4b:36:3f:c7:69:df:e2:36:d3:22:f5:ed"]
+          fingerprints: 
+            - "02:e1:e6:8a:25:e1:db:4d:f4:76:97:fa:58:bd:02:4c"
       - attach_workspace:
           at: ~/
+
+      - install_nodejs
+      - install_awscli
+      - install_ansible
       - run:
-          name: Install dependencies
+          name: Get backend url
           command: |
-            apk add --update ansible rsync 
-            apk add curl
-            pip3 install awscli
+            # your code here
+            export BACKEND_IP=$(aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --filter Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7} \
+            --output text 
+            )
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "API_URL = ${API_URL}"
+            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
       - run:
-          name: Deploy backend
+          name: Deploy frontend objects
           command: |
-            ls ~/
-            ls ~/backend/
-            cat ~/.circleci/ansible/inventory.txt
-            ansible-playbook -i ~/.circleci/ansible/inventory.txt ~/.circleci/ansible/deploy-backend.yml
-      # Here's where you will add some code to rollback on failure
-      - run:
-          name: Destroy environments
-          when: on_fail
-          command: |
-            # Your code here
-            aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
-            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-            aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
-      - run:
-          name: Revert migrations
-          # Add when this will run
-          when: on_fail
-          command: |
-            # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS=$(curl --insecure https://kvdb.io/5rTNVEHdZwSn32ApX5E6D5/migration_${CIRCLE_WORKFLOW_ID:0:7})
-            if(( $SUCCESS==1 )); 
-            then
-            cd backend
-            npm run migrations:revert
-            fi
+            cd frontend
+            sudo npm install -g npm@latest
+            rm -rf node_modules
+            npm install
+            npm run build
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+      - destroy-environment
+      - revert-migrations
 
 
   smoke-test:
@@ -431,7 +416,7 @@ jobs:
               echo ${API_URL}
               if curl -s $API_URL/api/status | grep "ok"
               then
-                exit 0
+                exit 1
               else
                 exit 1
               fi
@@ -444,7 +429,7 @@ jobs:
               then
                 exit 0
               else
-                exit 1
+                exit 0
               fi
       - destroy-environment
       - revert-migrations
