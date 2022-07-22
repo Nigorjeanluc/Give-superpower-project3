@@ -20,7 +20,7 @@
     npm install
     
     npm run build
-    npm run start:prod
+    pm2 start -f ./dist/main.js
     
     # sudo npm install forever -g
     # sudo npm install ts-node -g
